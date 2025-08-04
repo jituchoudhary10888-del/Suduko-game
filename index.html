@@ -1,0 +1,123 @@
+
+<!-- Sudoku Game with Levels and Timer -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sudoku Game</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+        td {
+            border: 1px solid #888;
+            width: 40px;
+            height: 40px;
+        }
+        input {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 18px;
+            border: none;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Game</h1>
+    <div id="level">Level: 1</div>
+    <div id="timer">Time: 0s</div>
+    <div id="board"></div>
+    <div class="controls">
+        <button onclick="checkSolution()">Check</button>
+        <button onclick="nextLevel()">Next Level</button>
+    </div>
+
+    <script>
+        const levels = [
+            [
+                [5, 3, "", "", 7, "", "", "", ""],
+                [6, "", "", 1, 9, 5, "", "", ""],
+                ["", 9, 8, "", "", "", "", 6, ""],
+                [8, "", "", "", 6, "", "", "", 3],
+                [4, "", "", 8, "", 3, "", "", 1],
+                [7, "", "", "", 2, "", "", "", 6],
+                ["", 6, "", "", "", "", 2, 8, ""],
+                ["", "", "", 4, 1, 9, "", "", 5],
+                ["", "", "", "", 8, "", "", 7, 9]
+            ],
+            [
+                [1, "", "", 4, 8, 9, "", "", 6],
+                [7, 3, "", "", "", "", "", 4, ""],
+                ["", "", "", "", "", 1, 2, 9, 5],
+                ["", 9, "", "", "", "", 4, 7, ""],
+                [8, 4, "", "", "", "", "", "", ""],
+                ["", "", 7, "", "", "", "", 2, ""],
+                ["", "", 5, "", "", "", 6, "", ""],
+                ["", "", "", 1, "", "", "", 8, ""],
+                [3, "", 6, "", "", "", "", "", ""]
+            ]
+            // Add more levels up to 10
+        ];
+
+        let currentLevel = 0;
+        let timer = 0;
+        let timerInterval;
+
+        function renderBoard(level) {
+            clearInterval(timerInterval);
+            timer = 0;
+            document.getElementById("timer").textContent = "Time: 0s";
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById("timer").textContent = "Time: " + timer + "s";
+            }, 1000);
+
+            document.getElementById("level").textContent = "Level: " + (level + 1);
+            const board = levels[level];
+            let html = "<table>";
+            for (let i = 0; i < 9; i++) {
+                html += "<tr>";
+                for (let j = 0; j < 9; j++) {
+                    const val = board[i][j];
+                    if (val === "") {
+                        html += `<td><input type="text" maxlength="1" data-row="${i}" data-col="${j}"></td>`;
+                    } else {
+                        html += `<td><input type="text" value="${val}" disabled></td>`;
+                    }
+                }
+                html += "</tr>";
+            }
+            html += "</table>";
+            document.getElementById("board").innerHTML = html;
+        }
+
+        function checkSolution() {
+            alert("Checking is not yet implemented!");
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            if (currentLevel >= levels.length) {
+                alert("You've finished all levels!");
+                clearInterval(timerInterval);
+                return;
+            }
+            renderBoard(currentLevel);
+        }
+
+        renderBoard(currentLevel);
+    </script>
+</body>
+</html>
