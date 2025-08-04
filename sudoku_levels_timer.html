@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sudoku Levels</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    h1 {
+      color: #e91e63;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, 40px);
+      grid-template-rows: repeat(9, 40px);
+      gap: 2px;
+      margin: 20px 0;
+    }
+    .cell {
+      width: 38px;
+      height: 38px;
+      text-align: center;
+      font-size: 18px;
+    }
+    .cell[readonly] {
+      background-color: #ddd;
+      font-weight: bold;
+    }
+    button, select {
+      padding: 10px;
+      margin: 10px 5px;
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #timer {
+      font-size: 18px;
+      color: #333;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sudoku Game</h1>
+  <label for="levelSelect">Select Level:</label>
+  <select id="levelSelect" onchange="loadLevel()">
+    <option value="0">Level 1</option>
+    <option value="1">Level 2</option>
+    <option value="2">Level 3</option>
+    <option value="3">Level 4</option>
+    <option value="4">Level 5</option>
+    <option value="5">Level 6</option>
+    <option value="6">Level 7</option>
+    <option value="7">Level 8</option>
+    <option value="8">Level 9</option>
+    <option value="9">Level 10</option>
+  </select>
+  <div id="timer">Time: 0 sec</div>
+  <div class="grid" id="sudokuGrid"></div>
+  <button onclick="checkSudoku()">Check</button>
+
+  <script>
+    const puzzles = [
+      [[5, 3, '', '', 7, '', '', '', ''], [6, '', '', 1, 9, 5, '', '', ''], ['', 9, 8, '', '', '', '', 6, ''],
+       [8, '', '', '', 6, '', '', '', 3], [4, '', '', 8, '', 3, '', '', 1], [7, '', '', '', 2, '', '', '', 6],
+       ['', 6, '', '', '', '', 2, 8, ''], ['', '', '', 4, 1, 9, '', '', 5], ['', '', '', '', 8, '', '', 7, 9]],
+
+      [[8, '', '', '', '', '', '', '', ''], ['', '', 3, 6, '', '', '', '', ''], ['', 7, '', '', 9, '', 2, '', ''],
+       ['', 5, '', '', '', 7, '', '', ''], ['', '', '', '', 4, 5, 7, '', ''], ['', '', '', 1, '', '', '', 3, ''],
+       ['', '', 1, '', '', '', '', 6, 8], ['', '', 8, 5, '', '', '', 1, ''], ['', 9, '', '', '', '', 4, '', '']],
+
+      [[3, '', '', 8, '', 6, '', '', 4], ['', '', '', '', 5, '', '', '', ''], ['', 2, '', '', '', '', '', 1, ''],
+       ['', '', 7, '', '', '', 5, '', ''], ['', 1, '', 7, '', 8, '', 3, ''], ['', '', 9, '', '', '', 2, '', ''],
+       ['', 9, '', '', '', '', '', 4, ''], ['', '', '', '', 2, '', '', '', ''], [6, '', '', 9, '', 7, '', '', 5]],
+
+      [[4, '', '', '', 7, '', '', '', ''], [6, '', '', '', '', '', '', '', ''], ['', 8, '', '', '', '', '', 6, ''],
+       ['', '', '', '', 9, '', '', '', 3], [2, '', '', 6, '', 1, '', '', 9], [3, '', '', '', 8, '', '', '', ''],
+       ['', 4, '', '', '', '', '', 5, ''], ['', '', '', '', '', '', '', '', 7], ['', '', '', '', 3, '', '', '', 2]],
+
+      [[7, '', '', '', '', '', '', '', ''], ['', '', '', 9, '', 5, '', '', ''], ['', 5, '', '', '', '', 4, '', ''],
+       ['', '', '', '', '', '', '', 8, 7], [6, '', '', '', '', '', '', '', 5], [5, 4, '', '', '', '', '', '', ''],
+       ['', '', 5, '', '', '', '', 7, ''], ['', '', '', 1, '', 8, '', '', ''], ['', '', '', '', '', '', '', '', 6]],
+
+      [[1, '', '', 9, '', '', '', '', ''], ['', 8, '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', '', 7],
+       [4, '', '', '', '', '', '', 5, ''], ['', '', '', '', 2, '', '', '', ''], ['', 7, '', '', '', '', '', '', 8],
+       [9, '', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', 3, ''], ['', '', '', '', '', 1, '', '', 6]],
+
+      [[2, '', '', '', 8, '', '', '', 5], ['', '', 4, '', '', '', 6, '', ''], ['', '', '', '', '', 7, '', '', ''],
+       ['', 9, '', 5, '', '', '', '', ''], ['', '', '', '', '', '', '', '', ''], ['', '', '', '', '', 4, '', 1, ''],
+       ['', '', '', 7, '', '', '', '', ''], ['', '', 3, '', '', '', 9, '', ''], [5, '', '', '', 3, '', '', '', 6]],
+
+      [['', '', '', 2, '', '', '', 6, ''], [7, '', '', '', '', '', 3, '', ''], ['', 9, '', 6, '', '', '', '', 2],
+       [1, '', '', '', '', 7, '', '', ''], ['', '', 8, '', '', '', 1, '', ''], ['', '', '', 9, '', '', '', '', 4],
+       [2, '', '', '', '', 8, '', 9, ''], ['', '', 1, '', '', '', '', '', 7], ['', 4, '', '', '', 3, '', '', '']],
+
+      [['', '', '', '', '', '', '', '', ''], ['', 2, '', 4, '', '', '', '', ''], ['', '', 5, '', '', 1, '', '', ''],
+       ['', 7, '', '', '', '', 1, '', ''], ['', '', '', '', '', '', '', '', ''], ['', '', 1, '', '', '', '', 6, ''],
+       ['', '', '', 5, '', '', 7, '', ''], ['', '', '', '', '', 2, '', 9, ''], ['', '', '', '', 6, '', '', '', '']],
+
+      [['', '', '', 6, '', '', '', '', 3], [5, '', 9, '', '', '', '', '', ''], ['', '', '', 8, '', '', '', 6, ''],
+       ['', '', '', '', 2, '', '', '', 9], [1, '', '', '', 5, '', '', '', 7], [3, '', '', '', 8, '', '', '', ''],
+       ['', 5, '', '', '', 7, '', '', ''], ['', '', '', '', '', '', 4, '', 1], [2, '', '', '', '', 4, '', '', '']]
+    ];
+
+    let timerInterval;
+    let seconds = 0;
+
+    function loadLevel() {
+      clearInterval(timerInterval);
+      seconds = 0;
+      document.getElementById("timer").textContent = "Time: 0 sec";
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").textContent = "Time: " + seconds + " sec";
+      }, 1000);
+
+      const grid = document.getElementById('sudokuGrid');
+      grid.innerHTML = '';
+      const level = parseInt(document.getElementById('levelSelect').value);
+      const puzzle = puzzles[level];
+
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          const input = document.createElement('input');
+          input.className = 'cell';
+          input.maxLength = 1;
+          input.type = 'text';
+          if (puzzle[row][col] !== '') {
+            input.value = puzzle[row][col];
+            input.readOnly = true;
+          }
+          input.dataset.row = row;
+          input.dataset.col = col;
+          grid.appendChild(input);
+        }
+      }
+    }
+
+    function checkSudoku() {
+      const cells = document.querySelectorAll('.cell');
+      let valid = true;
+      cells.forEach(cell => {
+        if (cell.value && !/^[1-9]$/.test(cell.value)) {
+          valid = false;
+        }
+      });
+      alert(valid ? 'Looks good so far!' : 'Only numbers 1–9 are allowed!');
+    }
+
+    window.onload = loadLevel;
+  </script>
+</body>
+</html>
