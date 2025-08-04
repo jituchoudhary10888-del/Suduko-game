@@ -1,123 +1,134 @@
-
-<!-- Sudoku Game with Levels and Timer -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Sudoku Game</title>
-    <style>
-        /* Add your CSS styles here */
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            text-align: center;
-            padding: 20px;
-        }
-        table {
-            margin: 0 auto;
-            border-collapse: collapse;
-        }
-        td {
-            border: 1px solid #888;
-            width: 40px;
-            height: 40px;
-        }
-        input {
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            font-size: 18px;
-            border: none;
-        }
-        .controls {
-            margin-top: 20px;
-        }
-    </style>
+  <title>Sudoku Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #ffe6f0;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #d63384;
+    }
+    .sudoku-container {
+      display: grid;
+      grid-template-columns: repeat(9, 40px);
+      grid-template-rows: repeat(9, 40px);
+      gap: 0;
+      margin: 20px auto;
+      border: 3px solid #d63384;
+      width: fit-content;
+      background-color: #fff0f5;
+    }
+    .cell {
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 18px;
+      line-height: 40px;
+      background-color: #ffffff;
+    }
+    .cell:nth-child(3n) {
+      border-right: 2px solid #d63384;
+    }
+    .cell:nth-child(n+19):nth-child(-n+27),
+    .cell:nth-child(n+46):nth-child(-n+54) {
+      border-bottom: 2px solid #d63384;
+    }
+    .cell input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-size: 18px;
+      background-color: #f9f1f7;
+      color: #d63384;
+    }
+    .cell input:focus {
+      background-color: #ffe6f0;
+      outline: 2px solid #d63384;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    button {
+      background-color: #d63384;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ad296a;
+    }
+    #timer {
+      font-size: 18px;
+      color: #333;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Sudoku Game</h1>
-    <div id="level">Level: 1</div>
-    <div id="timer">Time: 0s</div>
-    <div id="board"></div>
-    <div class="controls">
-        <button onclick="checkSolution()">Check</button>
-        <button onclick="nextLevel()">Next Level</button>
-    </div>
+  <h1>Sudoku Game</h1>
+  <div id="timer">Time: 00:00</div>
+  <div class="sudoku-container" id="sudokuGrid"></div>
+  <div class="controls">
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="resetGame()">Reset</button>
+  </div>
 
-    <script>
-        const levels = [
-            [
-                [5, 3, "", "", 7, "", "", "", ""],
-                [6, "", "", 1, 9, 5, "", "", ""],
-                ["", 9, 8, "", "", "", "", 6, ""],
-                [8, "", "", "", 6, "", "", "", 3],
-                [4, "", "", 8, "", 3, "", "", 1],
-                [7, "", "", "", 2, "", "", "", 6],
-                ["", 6, "", "", "", "", 2, 8, ""],
-                ["", "", "", 4, 1, 9, "", "", 5],
-                ["", "", "", "", 8, "", "", 7, 9]
-            ],
-            [
-                [1, "", "", 4, 8, 9, "", "", 6],
-                [7, 3, "", "", "", "", "", 4, ""],
-                ["", "", "", "", "", 1, 2, 9, 5],
-                ["", 9, "", "", "", "", 4, 7, ""],
-                [8, 4, "", "", "", "", "", "", ""],
-                ["", "", 7, "", "", "", "", 2, ""],
-                ["", "", 5, "", "", "", 6, "", ""],
-                ["", "", "", 1, "", "", "", 8, ""],
-                [3, "", 6, "", "", "", "", "", ""]
-            ]
-            // Add more levels up to 10
-        ];
+  <script>
+    const grid = document.getElementById("sudokuGrid");
+    let timerInterval;
+    let seconds = 0;
 
-        let currentLevel = 0;
-        let timer = 0;
-        let timerInterval;
+    function createGrid() {
+      grid.innerHTML = "";
+      for (let i = 0; i < 81; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const input = document.createElement("input");
+        input.setAttribute("type", "number");
+        input.setAttribute("min", "1");
+        input.setAttribute("max", "9");
+        cell.appendChild(input);
+        grid.appendChild(cell);
+      }
+    }
 
-        function renderBoard(level) {
-            clearInterval(timerInterval);
-            timer = 0;
-            document.getElementById("timer").textContent = "Time: 0s";
-            timerInterval = setInterval(() => {
-                timer++;
-                document.getElementById("timer").textContent = "Time: " + timer + "s";
-            }, 1000);
+    function startTimer() {
+      clearInterval(timerInterval);
+      seconds = 0;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        seconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
 
-            document.getElementById("level").textContent = "Level: " + (level + 1);
-            const board = levels[level];
-            let html = "<table>";
-            for (let i = 0; i < 9; i++) {
-                html += "<tr>";
-                for (let j = 0; j < 9; j++) {
-                    const val = board[i][j];
-                    if (val === "") {
-                        html += `<td><input type="text" maxlength="1" data-row="${i}" data-col="${j}"></td>`;
-                    } else {
-                        html += `<td><input type="text" value="${val}" disabled></td>`;
-                    }
-                }
-                html += "</tr>";
-            }
-            html += "</table>";
-            document.getElementById("board").innerHTML = html;
-        }
+    function updateTimerDisplay() {
+      const min = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const sec = String(seconds % 60).padStart(2, '0');
+      document.getElementById("timer").innerText = `Time: ${min}:${sec}`;
+    }
 
-        function checkSolution() {
-            alert("Checking is not yet implemented!");
-        }
+    function resetGame() {
+      clearInterval(timerInterval);
+      document.getElementById("timer").innerText = "Time: 00:00";
+      createGrid();
+    }
 
-        function nextLevel() {
-            currentLevel++;
-            if (currentLevel >= levels.length) {
-                alert("You've finished all levels!");
-                clearInterval(timerInterval);
-                return;
-            }
-            renderBoard(currentLevel);
-        }
+    function startGame() {
+      resetGame();
+      startTimer();
+    }
 
-        renderBoard(currentLevel);
-    </script>
+    // Initial setup
+    createGrid();
+  </script>
 </body>
 </html>
